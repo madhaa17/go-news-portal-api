@@ -17,7 +17,9 @@ type Postgres struct {
 func (cfg *Config) ConnPostgres() (*Postgres, error) {
 	dbConnString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", cfg.Psql.User, cfg.Psql.Password, cfg.Psql.Host, cfg.Psql.Port, cfg.Psql.DBName)
 
-	db, err := gorm.Open(postgres.Open(dbConnString), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dbConnString), &gorm.Config{
+		PrepareStmt: false,
+	})
 	if err != nil {
 		log.Error().Err(err).Msg("[ConnPostgres-1] Failed to connect to database" + cfg.Psql.Host)
 		return nil, err
