@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -41,6 +42,7 @@ func (a *authService) GetUserByEmail(ctx context.Context, req entity.LoginReques
 
 	if checkPass := conv.CheckPasswordHash(req.Password, result.Password); !checkPass {
 		code = "[SERVICE] GetUserByEmail - 2"
+		err = errors.New("email or password is incorrect")
 		log.Errorw(code, err)
 		return nil, err
 	}

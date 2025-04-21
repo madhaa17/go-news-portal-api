@@ -8,6 +8,9 @@ import (
 	"time"
 
 	"news-app/config"
+	"news-app/internal/adapter/handler"
+	"news-app/internal/adapter/repository"
+	"news-app/internal/core/service"
 	"news-app/lib/auth"
 	"news-app/lib/middleware"
 	"news-app/lib/pagination"
@@ -22,7 +25,7 @@ import (
 
 func RunServer() {
 	cfg := config.NewConfig()
-	_, err := cfg.ConnPostgres()
+	db, err := cfg.ConnPostgres()
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Failed to connect to database: %v", err)
 		return
@@ -35,6 +38,15 @@ func RunServer() {
 	_ = middleware.NewMiddleware(cfg)
 	_ = pagination.NewPagination()
 
+	// repository
+	authRepo := repository.NewAuthRepository(db.DB)
+
+	// service
+	authService := service.NewAuthService(authRepo, cfg, auth.NewJwt(cfg))
+
+	// handler
+	authHandler := handler.NewAuthHandler(authService)
+
 	app := fiber.New()
 	app.Use(cors.New())
 	app.Use(recover.New())
@@ -44,7 +56,8 @@ func RunServer() {
 		},
 	))
 
-	_ = app.Group("/api")
+	api := app.Group("/api")
+	api.Post("/auth/login", authHandler.Login)
 
 	go func() {
 		if cfg.App.AppPort == "" {
