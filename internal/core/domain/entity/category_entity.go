@@ -6,3 +6,8 @@ type CategoryEntity struct {
 	Slug  string
 	UserEntity
 }
+
+// Error implements error.
+func (c *CategoryEntity) Error() string {
+	panic("unimplemented")
+}

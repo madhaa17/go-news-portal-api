@@ -5,6 +5,7 @@ import (
 
 	"news-app/internal/adapter/repository"
 	"news-app/internal/core/domain/entity"
+	"news-app/lib/conv"
 
 	"github.com/gofiber/fiber/v2/log"
 )
@@ -23,7 +24,17 @@ type categoryService struct {
 
 // CreateCategory implements CategoryService.
 func (c *categoryService) CreateCategory(ctx context.Context, req entity.CategoryEntity) (*entity.CategoryEntity, error) {
-	panic("unimplemented")
+	slug := conv.GeneratesSlug(req.Title)
+	req.Slug = slug
+
+	_, err := c.categoryRepository.CreateCategory(ctx, req)
+	if err != nil {
+		code := "[SERVICE] CreateCategory - 1"
+		log.Errorw(code, err)
+		return nil, err
+	}
+
+	return &req, nil
 }
 
 // DeleteCategory implements CategoryService.

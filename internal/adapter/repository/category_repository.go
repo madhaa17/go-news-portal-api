@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"news-app/internal/core/domain/entity"
 	"news-app/internal/core/domain/model"
@@ -25,8 +26,30 @@ type categoryRepository struct {
 
 // CreateCategory implements CategoryRepository.
 func (c *categoryRepository) CreateCategory(ctx context.Context, req entity.CategoryEntity) (*entity.CategoryEntity, error) {
-	
-	panic("unimplemented")
+	var countSlug int64
+	err = c.db.Table("categories").Where("slug = ?", req.Slug).Count(&countSlug).Error
+	if err != nil {
+		code := "[REPOSITORY] CreateCategory - 1"
+		log.Errorw(code, err)
+		return nil, err
+	}
+
+	countSlug = countSlug + 1
+	slug := fmt.Sprintf("%s-%d", req.Slug, countSlug)
+	modelCategory := model.Category{
+		Title:       req.Title,
+		Slug:        slug,
+		CreatedByID: int64(req.UserEntity.ID),
+	}
+
+	err = c.db.Create(&modelCategory).Error
+	if err != nil {
+		code = "[REPOSITORY] CreateCategory - 2"
+		log.Errorw(code, err)
+		return nil, err
+	}
+
+	return nil, err
 }
 
 // DeleteCategory implements CategoryRepository.

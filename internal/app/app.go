@@ -62,12 +62,13 @@ func RunServer() {
 	api := app.Group("/api")
 	api.Post("/auth/login", authHandler.Login)
 
-	adminApp := app.Group("/admin")
+	adminApp := api.Group("/admin")
 	adminApp.Use(middlewareAuth.CheckToken())
 
 	// category
 	categoryApp := adminApp.Group("/categories")
 	categoryApp.Get("/", categoryHandler.GetCategories)
+	categoryApp.Post("/", categoryHandler.CreateCategory)
 
 	go func() {
 		if cfg.App.AppPort == "" {
