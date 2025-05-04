@@ -39,7 +39,14 @@ func (c *categoryService) CreateCategory(ctx context.Context, req entity.Categor
 
 // DeleteCategory implements CategoryService.
 func (c *categoryService) DeleteCategory(ctx context.Context, id int16) error {
-	panic("unimplemented")
+	err = c.categoryRepository.DeleteCategory(ctx, id)
+	if err != nil {
+		code := "[SERVICE] DeleteCategory - 1"
+		log.Errorw(code, err)
+		return err
+	}
+
+	return nil
 }
 
 // GetCategories implements CategoryService.
@@ -56,12 +63,40 @@ func (c *categoryService) GetCategories(ctx context.Context) ([]entity.CategoryE
 
 // GetCategoryByID implements CategoryService.
 func (c *categoryService) GetCategoryByID(ctx context.Context, id int16) (*entity.CategoryEntity, error) {
-	panic("unimplemented")
+	results, err := c.categoryRepository.GetCategoryByID(ctx, id)
+	if err != nil {
+		code = "[SERVICE] GetCategoryByID - 1"
+		log.Errorw(code, err)
+		return nil, err
+	}
+
+	return results, nil
 }
 
 // UpdateCategory implements CategoryService.
 func (c *categoryService) UpdateCategory(ctx context.Context, req entity.CategoryEntity) (*entity.CategoryEntity, error) {
-	panic("unimplemented")
+	categoryData, err := c.categoryRepository.GetCategoryByID(ctx, req.ID)
+	if err != nil {
+		code := "[SERVICE] UpdateCategory - 1"
+		log.Errorw(code, err)
+		return nil, err
+	}
+	slug := conv.GeneratesSlug(req.Title)
+
+	if categoryData.Title == req.Title {
+		req.Slug = categoryData.Slug
+	}
+
+	req.Slug = slug
+
+	_, err = c.categoryRepository.UpdateCategory(ctx, req)
+	if err != nil {
+		code := "[SERVICE] UpdateCategory - 2"
+		log.Errorw(code, err)
+		return nil, err
+	}
+
+	return nil, err
 }
 
 func NewCategoryService(categoryRepo repository.CategoryRepository) CategoryService {
